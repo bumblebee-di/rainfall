@@ -4,7 +4,7 @@ int m;
 
 void v() {
 
-    char *str;
+    char str[520];
 
     fgets(str, 512 , stdin);
     printf(str);
