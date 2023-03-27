@@ -1,0 +1,23 @@
+
+int m; //0x8049810
+
+void p(char *s) {
+    printf(s);
+    return;
+}
+
+void n() {
+
+    char str[520];
+    fgets(str, 512, stdin);
+    p (str);
+
+    if (m == 16930116)
+        system("/bin/cat /home/user/level5/.pass");
+    return;
+}
+
+int main() {
+    n();
+    return 0;
+}
