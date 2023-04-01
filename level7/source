@@ -1,0 +1,70 @@
+#include <time.h>
+#include <stdio.h>
+
+char c[80];
+
+// (gdb) x/100x 0x08049960
+// 0x8049960 <c>:  0x00000000      0x00000000      0x00000000      0x00000000
+// 0x8049970 <c+16>:       0x00000000      0x00000000      0x00000000      0x00000000
+// 0x8049980 <c+32>:       0x00000000      0x00000000      0x00000000      0x00000000
+// 0x8049990 <c+48>:       0x00000000      0x00000000      0x00000000      0x00000000
+// 0x80499a0 <c+64>:       0x00000000      0x00000000      0x00000000      0x00000000
+// 0x80499b0:      0x00000000      0x00000000      0x00000000      0x00000000
+
+int m () {
+    time_t t = time(0);
+    printf("%s - %d\n", c , t);
+}
+
+
+int main(int argc, char *argv) {
+
+
+    int *first = (int *)malloc(8); // 0x1c(%esp)
+
+    first[0] = 1;
+
+    first[1] = malloc(8); // 0x1c(%esp) + 0x4
+
+    int *second = malloc(8); // 0x18(%esp)
+
+    second[0] = 2;
+    second[1] = malloc(8); // 0x18(%esp) + 0x4
+
+    strcpy();
+
+    strcpy();
+
+    FILE *file = fopen("/home/user/level8/.pass", "r");
+
+    fgets(c, 68, file);
+
+    puts("~~");
+
+    return (0);
+}
+
+void m(void) {
+    time_t t = time(0);
+
+    printf("%s - %d\n", c, t);
+    return;
+}
+
+int main(int ac, char **av) {
+    int *arr1;
+    int *arr2;
+    FILE *file;
+    
+    arr1 = (int *)malloc(8);
+    arr1[0] = 1;
+    arr1[1] = (int *)malloc(8); // int and int* have the same size in 32bit systems
+    arr2 = (int *)malloc(8);
+    arr2[0] = 2;
+    arr2[1] = (int *)malloc(8);
+    strcpy((char *)arr1[1], av[1]);
+    strcpy((char *)arr2[1], av[2]);
+    file = fopen("/home/user/level8/.pass", "r");
+    fgets(c, 68, file);
+    puts("~~");
+    return 0;
