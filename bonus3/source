@@ -1,0 +1,28 @@
+int main (int argc, char **argv) {
+    FILE *fd = fopen("/home/user/end/.pass", "r");
+
+    char buffer[132];
+
+    bzero(buffer, 33);
+
+    if (fd != 0 || argc != 2) {
+        return (-1);
+    }
+
+    fread(buffer, 1, 66, fd);
+
+    // buffer[65] = 0; // (0x59 - 0x18)
+    buffer[atoi(argv(1))] = 0;
+
+    fread(&buffer[66], 1, 61, fd);
+
+    fclose(fd);
+
+    if (strcmp(buffer, argv[1]) != 0)
+        puts(buffer[66]);
+    else 
+        execl("/bin/sh", "sh", NULL);
+
+    return (0);
+
+}
