@@ -1,0 +1,29 @@
+void p(char *str1 , char *str2) {
+    char buffer[4104]; // 0x1008
+    puts(str2);
+    read(0, buffer, 4096);
+    char *occurrence;
+    occurrence = strchr(buffer, 10); // '\n'
+    *occurrence = '\0';
+    stpncpy(str1, buffer, 20);
+}
+
+void pp(char *str) {
+    char buffer1[20];
+    p(buffer1, " - ");
+    char buffer2[20];
+    p(buffer2, " - ");
+    strcpy(str, buffer1);
+
+    int len = strlen(str);
+    *(str + len ) = ' ';
+    *(str + len + 1) = '\0';
+    strcat(str, buffer2);
+}
+
+int main() {
+    char *str[42];
+    pp(str);
+    puts(str);
+    return (0);
+}
