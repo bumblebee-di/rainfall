@@ -5,7 +5,7 @@ int main (int argc, char **argv) {
 
     if (num <= 9) { // logically as unsigned int
         memcpy(str, argv[2], num * 4);
-        if (0x574f4c46 == num) // as unsigned int
+        if (0x574f4c46 == num) // as unsigned int 1464814662
             execl("/bin/sh", "sh", 0);
     }
     else 

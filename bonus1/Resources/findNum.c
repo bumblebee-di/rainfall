@@ -5,7 +5,7 @@ int main() {
 
     while (i < 0) {
         if (i * 4 == 44) {
-            printf("%d - %d - %u\n", i, i * 4, i);
+            printf("%d - %d\n", i, i * 4);
             break;
         }
         i++;
