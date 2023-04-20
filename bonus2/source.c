@@ -1,7 +1,7 @@
 int language = 0;
 
 void greetuser(char* name) {
-	char* buffer[???]; // TODO
+	char* buffer[64];
 
 	if (lang == 1) {
 		strcpy(buffer, "Hyvää päivää ");
@@ -16,7 +16,7 @@ void greetuser(char* name) {
 }
 
 int main(int argc, char** argv) {
-	char buffer[72]; // точно ли 72
+	char buffer[72];
 
 	if (argc != 3) {
 		return 1

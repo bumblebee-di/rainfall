@@ -1,0 +1,42 @@
+#include <cstring>
+
+class N {
+    private:
+        int number;
+        char *str;
+
+    public:
+        N(int value) { this->number = value; }
+        N operator+(N &rhs) { return N(rhs.number + this->number); }
+        N operator-(N &rhs) { return N(this->number - rhs.number); }
+
+        void setAnnotation(char *str) {
+            size_t len;
+
+            len = strlen(str);
+            memcpy(this->str, str, len);
+            return;
+        }
+
+    
+};
+
+
+int main(int argc,char **argv) {
+    N *five;
+    N *six;
+    int ret;
+
+    if (argc < 2) {
+        _exit(1);
+    }
+
+    five = new N(5);
+    six = new N(6);
+
+    five->setAnnotation(argv[1]);
+
+    ret = (***six)(six, five);
+
+    return ret;
+}

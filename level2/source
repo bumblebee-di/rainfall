@@ -1,27 +1,21 @@
-  #include <stdio.h>
+void p() {
+    fflush(stdout);
 
- void p() {
+    char *s;
+    gets(s);
 
-     fflush(stdout);
+    unsigned int num;
 
-     char *s;
-     gets(s);
-
-     unsigned int num;
-
-     if (0xb0000000 == (num & 0xb0000000) )
-     {
+    if (0xb0000000 == (num & 0xb0000000) ) {
         printf("(%p)\n", num);
         exit(1);
-     }
+    }
 
     puts(s);
     strdup(s);
-
- }
- 
+}
  
  int main() {
-     p();
-     return 0;
+    p();
+    return 0;
  }

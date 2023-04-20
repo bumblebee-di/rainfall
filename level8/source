@@ -1,7 +1,6 @@
 char *auth;
 char *service;
 
-
 int main() {
 	char buffer[128];
 
@@ -14,7 +13,8 @@ int main() {
 
 		if (strncmp(buffer, "auth ", 5) == 0) {
 			auth = malloc(4);
-            *auth = 0;  // ??
+            *auth = 0;
+
 			if (strlen(buffer + 5) <= 30) {
 				strcpy(auth, buffer + 5);
 			}
@@ -33,5 +33,6 @@ int main() {
 			}
 		}
 	}
+
 	return 0;
 }
